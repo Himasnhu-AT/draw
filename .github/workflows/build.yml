@@ -1,0 +1,143 @@
+###############
+# way too many errors
+#
+# Fetched 6788 kB in 1s (6879 kB/s)
+# Reading package lists...
+# Reading package lists...
+# Building dependency tree...
+# Reading state information...
+# E: Unable to locate package libwebkit2gtk-4.0-dev
+# E: Couldn't find any package by glob 'libwebkit2gtk-4.0-dev'
+# E: Couldn't find any package by regex 'libwebkit2gtk-4.0-dev'
+# Error: Process completed with exit code 100.
+#
+###############
+
+# name: "Build Tauri App"
+
+# on:
+#   push:
+#     branches: [main]
+#   pull_request:
+#     branches: [main]
+#   workflow_dispatch:
+
+# jobs:
+#   build:
+#     strategy:
+#       fail-fast: false
+#       matrix:
+#         # platform: [macos-latest, ubuntu-latest, windows-latest]
+#         platform: [ubuntu-latest]
+
+#     runs-on: ${{ matrix.platform }}
+#     steps:
+#       - name: Checkout repository
+#         uses: actions/checkout@v3
+
+#       # Setup Node.js environment for Next.js
+#       - name: Setup Node.js
+#         uses: actions/setup-node@v3
+#         with:
+#           node-version: "18"
+
+#       - name: Install Linux dependencies
+#         if: matrix.platform == 'ubuntu-latest'
+#         run: |
+#           sudo apt-get update
+#           sudo apt-get install -y \
+#             libgtk-3-dev \
+#             libwebkit2gtk-4.0-dev \
+#             libayatana-appindicator3-dev \
+#             librsvg2-dev \
+#             libglib2.0-dev \
+#             build-essential \
+#             libssl-dev \
+#             libxcb-render0-dev \
+#             libxcb-shape0-dev \
+#             libxcb-xfixes0-dev \
+#             libxkbcommon-dev \
+#             libdbus-1-dev \
+#             pkg-config
+
+#       # Setup pnpm
+#       - name: Setup pnpm
+#         uses: pnpm/action-setup@v2
+#         with:
+#           version: latest
+#           run_install: false
+
+#       # Get pnpm store directory
+#       - name: Get pnpm store directory
+#         id: pnpm-cache
+#         shell: bash
+#         run: |
+#           echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+#       # Setup pnpm cache
+#       - name: Setup pnpm cache
+#         uses: actions/cache@v3
+#         with:
+#           path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+#           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+#           restore-keys: |
+#             ${{ runner.os }}-pnpm-store-
+
+#       # Install dependencies for Next.js
+#       - name: Install frontend dependencies
+#         run: pnpm install --frozen-lockfile
+
+#       # Build the Next.js application
+#       - name: Build Next.js application
+#         run: pnpm run build
+#         env:
+#           # Add any environment variables you might need
+#           NODE_ENV: production
+
+#       # Install Rust toolchain
+#       - name: Install Rust
+#         uses: actions-rs/toolchain@v1
+#         with:
+#           toolchain: stable
+#           override: true
+#           components: rustfmt, clippy
+
+#       # Install system dependencies for Linux
+#       - name: Install Linux dependencies
+#         if: matrix.platform == 'ubuntu-latest'
+#         run: |
+#           sudo apt-get update
+#           sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.0-dev libayatana-appindicator3-dev librsvg2-dev
+
+#       # Install Tauri CLI
+#       - name: Install Tauri CLI
+#         run: cargo install tauri-cli
+
+#       # Cache Rust dependencies
+#       - name: Rust cache
+#         uses: swatinem/rust-cache@v2
+#         with:
+#           workspaces: "./src-tauri -> target"
+
+#       # Build Tauri application
+#       - name: Build Tauri (Rust) application
+#         uses: tauri-apps/tauri-action@v0
+#         env:
+#           # Improves build times on Windows
+#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#         with:
+#           tauriScript: cargo tauri build
+
+#       # Upload build artifacts - Updated to v4
+#       - name: Upload build artifacts
+#         uses: actions/upload-artifact@v4
+#         with:
+#           name: artifacts-${{ matrix.platform }}
+#           path: |
+#             src-tauri/target/release/bundle/deb/*.deb
+#             src-tauri/target/release/bundle/appimage/*.AppImage
+#             src-tauri/target/release/bundle/dmg/*.dmg
+#             src-tauri/target/release/bundle/macos/*.app
+#             src-tauri/target/release/bundle/msi/*.msi
+#             src-tauri/target/release/*.exe
+#           if-no-files-found: ignore
