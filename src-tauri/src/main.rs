@@ -17,42 +17,30 @@ struct SaveDrawingArgs {
 // Command to save drawing data to a file
 #[tauri::command]
 fn save_drawing(app_handle: tauri::AppHandle, args: SaveDrawingArgs) -> Result<(), String> {
-    info!("Save drawing called with data length: {}", args.data.len());
-    
     // Get the app data directory
-    let app_data_dir = match app_data_dir(&app_handle.config()) {
-        Some(dir) => dir,
-        None => {
-            error!("Failed to get app data directory");
-            return Err("Failed to get app data directory".to_string());
-        }
-    };
-    
-    info!("App data directory: {:?}", app_data_dir);
+    let app_data_dir = app_data_dir(&app_handle.config()).expect("Failed to get app data directory");
+    debug!("App data directory: {:?}", app_data_dir);
     
     // Create the directory if it doesn't exist
-    if !app_data_dir.exists() {
+    if (!app_data_dir.exists()) {
         info!("Creating app data directory: {:?}", app_data_dir);
-        if let Err(e) = fs::create_dir_all(&app_data_dir) {
+        fs::create_dir_all(&app_data_dir).map_err(|e| {
             error!("Failed to create app data directory: {}", e);
-            return Err(e.to_string());
-        }
+            e.to_string()
+        })?;
     }
     
     // Define the path for the drawing file
     let app_name = &app_handle.config().tauri.bundle.identifier;
-    info!("App identifier: {}", app_name);
-    
     let cache_dir = app_data_dir.join("cache").join(app_name);
-    info!("Cache directory: {:?}", cache_dir);
     
     // Create cache directory if it doesn't exist
-    if !cache_dir.exists() {
+    if (!cache_dir.exists()) {
         info!("Creating cache directory: {:?}", cache_dir);
-        if let Err(e) = fs::create_dir_all(&cache_dir) {
+        fs::create_dir_all(&cache_dir).map_err(|e| {
             error!("Failed to create cache directory: {}", e);
-            return Err(e.to_string());
-        }
+            e.to_string()
+        })?;
     }
     
     // Define the path for the drawing file (in excalidraw format)
@@ -60,73 +48,43 @@ fn save_drawing(app_handle: tauri::AppHandle, args: SaveDrawingArgs) -> Result<(
     info!("Saving drawing to: {:?}", file_path);
     
     // Write the data to the file
-    match fs::write(&file_path, &args.data) {
-        Ok(_) => {
-            info!("Drawing saved successfully to {:?}", file_path);
-            // Verify the file was created
-            if file_path.exists() {
-                match fs::metadata(&file_path) {
-                    Ok(metadata) => {
-                        info!("File size: {} bytes", metadata.len());
-                    },
-                    Err(e) => {
-                        error!("Failed to get file metadata: {}", e);
-                    }
-                }
-            } else {
-                error!("File was not created even though write appeared successful");
-            }
-            Ok(())
-        },
-        Err(e) => {
-            error!("Failed to write drawing data: {}", e);
-            Err(e.to_string())
-        }
-    }
+    fs::write(&file_path, &args.data).map_err(|e| {
+        error!("Failed to write drawing data: {}", e);
+        e.to_string()
+    })?;
+    
+    debug!("Drawing saved successfully");
+    Ok(())
 }
 
 // Command to load drawing data from a file
 #[tauri::command]
 fn load_drawing(app_handle: tauri::AppHandle) -> Result<String, String> {
-    info!("Load drawing called");
-    
     // Get the app data directory
-    let app_data_dir = match app_data_dir(&app_handle.config()) {
-        Some(dir) => dir,
-        None => {
-            error!("Failed to get app data directory");
-            return Err("Failed to get app data directory".to_string());
-        }
-    };
-    
-    info!("App data directory: {:?}", app_data_dir);
+    let app_data_dir = app_data_dir(&app_handle.config()).expect("Failed to get app data directory");
+    debug!("App data directory: {:?}", app_data_dir);
     
     // Define the path for the drawing file
     let app_name = &app_handle.config().tauri.bundle.identifier;
-    info!("App identifier: {}", app_name);
-    
     let cache_dir = app_data_dir.join("cache").join(app_name);
     let file_path = cache_dir.join("drawing-data.excalidraw");
-    info!("Looking for drawing at: {:?}", file_path);
+    debug!("Looking for drawing at: {:?}", file_path);
     
     // Check if the file exists
-    if !file_path.exists() {
+    if (!file_path.exists()) {
         info!("No saved drawing found at {:?}", file_path);
         return Ok("".to_string()); // Return empty string if no saved data
     }
     
     // Read the data from the file
     info!("Loading drawing from: {:?}", file_path);
-    match fs::read_to_string(&file_path) {
-        Ok(data) => {
-            info!("Drawing loaded successfully, data length: {}", data.len());
-            Ok(data)
-        },
-        Err(e) => {
-            error!("Failed to read drawing data: {}", e);
-            Err(e.to_string())
-        }
-    }
+    let data = fs::read_to_string(file_path).map_err(|e| {
+        error!("Failed to read drawing data: {}", e);
+        e.to_string()
+    })?;
+    
+    debug!("Drawing loaded successfully");
+    Ok(data)
 }
 
 // Utility command to check paths and permissions
@@ -142,7 +100,7 @@ fn check_storage_paths(app_handle: tauri::AppHandle) -> Result<String, String> {
             result.push_str(&format!("App data directory: {:?}\n", app_data_dir));
             
             // Check if directory exists
-            if app_data_dir.exists() {
+            if (app_data_dir.exists()) {
                 result.push_str("  - Directory exists\n");
                 
                 // Check if directory is writable
@@ -177,7 +135,7 @@ fn check_storage_paths(app_handle: tauri::AppHandle) -> Result<String, String> {
             result.push_str(&format!("App cache directory: {:?}\n", cache_dir));
             
             // Check if directory exists
-            if cache_dir.exists() {
+            if (cache_dir.exists()) {
                 result.push_str("  - Directory exists\n");
             } else {
                 result.push_str("  - Directory does NOT exist\n");
@@ -195,7 +153,7 @@ fn check_storage_paths(app_handle: tauri::AppHandle) -> Result<String, String> {
             result.push_str(&format!("App-specific cache directory: {:?}\n", app_cache_dir));
             
             // Try to create it if it doesn't exist
-            if !app_cache_dir.exists() {
+            if (!app_cache_dir.exists()) {
                 match fs::create_dir_all(&app_cache_dir) {
                     Ok(_) => result.push_str("  - Successfully created app-specific cache directory\n"),
                     Err(e) => result.push_str(&format!("  - Failed to create app-specific cache directory: {}\n", e))
@@ -219,7 +177,33 @@ fn check_storage_paths(app_handle: tauri::AppHandle) -> Result<String, String> {
         }
     }
     
-    info!("Storage path check results: {}", result);
+    // Check our specific excalidraw file path
+    let app_data_dir = match app_data_dir(&app_handle.config()) {
+        Some(dir) => dir,
+        None => return Ok(result),
+    };
+    
+    let app_name = &app_handle.config().tauri.bundle.identifier;
+    let cache_dir = app_data_dir.join("cache").join(app_name);
+    let file_path = cache_dir.join("drawing-data.excalidraw");
+    
+    result.push_str(&format!("\nExcalidraw file path: {:?}\n", file_path));
+    
+    if (file_path.exists()) {
+        result.push_str("  - File exists\n");
+        match fs::metadata(&file_path) {
+            Ok(metadata) => {
+                result.push_str(&format!("  - File size: {} bytes\n", metadata.len()));
+            },
+            Err(e) => {
+                result.push_str(&format!("  - Failed to get file metadata: {}\n", e));
+            }
+        }
+    } else {
+        result.push_str("  - File does NOT exist yet\n");
+    }
+    
+    info!("Storage path check completed");
     Ok(result)
 }
 
