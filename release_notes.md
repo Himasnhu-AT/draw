@@ -1,4 +1,4 @@
-# Draw App 0.0.0-beta
+# Draw App 0.0.1-stable
 
 This is a release version of the Draw App.
 
@@ -37,6 +37,17 @@ Alternatively, you can open System Settings -> Privacy & Security and click 'Ope
 
 > [!IMPORTANT]
 ## **Important Note for macOS Users:**
+> This app is not notarized by Apple, so you may see a warning saying it can’t be opened because Apple cannot check it for malicious software.
+> To open the app:
+>   1. Control-click (or right-click) the app and choose 'Open'.
+>   2. In the dialog that appears, click 'Open' again.
+> Alternatively, you can open System Settings -> Privacy & Security and click 'Open Anyway' next to the warning.
+---
+
+
+
+> [!IMPORTANT]
+> ## **Important Note for macOS Users:**
 > This app is not notarized by Apple, so you may see a warning saying it can’t be opened because Apple cannot check it for malicious software.
 > To open the app:
 >   1. Control-click (or right-click) the app and choose 'Open'.
