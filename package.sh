@@ -148,6 +148,16 @@ select_file() {
 select_file "app" "$DEFAULT_APP_DIR" "APP_PATH"
 echo -e "${GREEN}Selected app bundle: $APP_PATH${NC}"
 
+# Self-sign the app bundle using ad-hoc signature
+echo -e "${BLUE}Self-signing the .app bundle using ad-hoc signature...${NC}"
+codesign --deep --force --verify --verbose --sign - "$APP_PATH"
+if [ $? -eq 0 ]; then
+    echo -e "${GREEN}App bundle signed successfully.${NC}"
+else
+    echo -e "${RED}Failed to sign app bundle. Check codesign logs above.${NC}"
+    exit 1
+fi
+
 # Find and select DMG file
 select_file "dmg" "$DEFAULT_DMG_DIR" "DMG_PATH"
 echo -e "${GREEN}Selected DMG file: $DMG_PATH${NC}"
