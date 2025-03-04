@@ -23,14 +23,18 @@
         "save": true
       },
       "fs": {
-        "all": true,
-        "readFile": true,
-        "writeFile": true,
-        "readDir": true,
-        "copyFile": true,
-        "createDir": true,
-        "scope": ["$DOCUMENT/*", "$DESKTOP/*"]
-      }
+      "all": true,
+      "readFile": true,
+      "writeFile": true,
+      "readDir": true,
+      "copyFile": true,
+      "createDir": true,
+      "scope": [
+        "$DOCUMENT/*", 
+        "$DESKTOP/*",
+        "$HOME/Library/Application Support/com.drawapp.dev/*"
+      ]
+    }
     },
     "bundle": {
       "active": true,
