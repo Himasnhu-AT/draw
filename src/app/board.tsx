@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 // Import the types from Excalidraw
 import type { ExcalidrawElement } from "@excalidraw/excalidraw/types/element/types";
 import type { AppState, BinaryFiles } from "@excalidraw/excalidraw/types/types";
-import { invoke } from "@tauri-apps/api/core";
+import { invoke } from "@tauri-apps/api/tauri";
 
 const Excalidraw = dynamic(
   () => import("@excalidraw/excalidraw").then((mod) => mod.Excalidraw),
@@ -51,6 +51,7 @@ function DiagnosticPanel({ onClose }: { onClose: () => void }) {
       top: '10px',
       right: '10px',
       backgroundColor: 'white',
+      color: 'black',
       border: '1px solid #ccc',
       borderRadius: '5px',
       padding: '10px',
@@ -80,18 +81,38 @@ export default function Home() {
   const [showDiagnostics, setShowDiagnostics] = useState(false);
 
   // Save drawing data
+  // const saveDrawing = debounce(async (elements: readonly ExcalidrawElement[], appState: AppState) => {
+  //   try {
+  //     console.log("Saving drawing with elements:", elements.length);
+  //     const dataObject = { elements, appState };
+  //     const data = JSON.stringify(dataObject);
+  //     console.log(`Data size to save: ${data.length} characters`);
+  //     await invoke("save_drawing", { args: data });
+  //     console.log("Drawing saved successfully");
+  //   } catch (error) {
+  //     console.error("Failed to save drawing:", error);
+  //   }
+  // }, 1000); // Debounce for 1 second
   const saveDrawing = debounce(async (elements: readonly ExcalidrawElement[], appState: AppState) => {
     try {
       console.log("Saving drawing with elements:", elements.length);
-      const dataObject = { elements, appState };
-      const data = JSON.stringify(dataObject);
-      console.log(`Data size to save: ${data.length} characters`);
-      await invoke("save_drawing", { data });
-      console.log("Drawing saved successfully", { data });
+      // Instead of sending JSON string, pass the object directly
+      // const dataObject = { elements, appState };
+      // const data = JSON.stringify(dataObject);
+      // await invoke("save_drawing", { args: data });
+      
+      await invoke("save_drawing", {
+        args: {
+          elements: elements,
+          app_state: appState,
+        },
+      });
+      
+      console.log("Drawing saved successfully");
     } catch (error) {
       console.error("Failed to save drawing:", error);
     }
-  }, 1000); // Debounce for 1 second
+  }, 1000);
 
   // Load drawing data
   const loadDrawing = async () => {

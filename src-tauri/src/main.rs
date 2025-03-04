@@ -6,54 +6,43 @@ use std::path::Path;
 use tauri::api::path::{app_data_dir, app_cache_dir};
 use log::{info, error, debug, LevelFilter};
 use env_logger;
-use serde::Deserialize;
+use serde::{Serialize, Deserialize};
 
-// Struct to deserialize the data parameter from JavaScript
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 struct SaveDrawingArgs {
-    data: String,
+    elements: serde_json::Value,
+    app_state: serde_json::Value,
 }
+
+// struct SaveDrawingArgs {
+//     data: String,
+// }
 
 // Command to save drawing data to a file
 #[tauri::command]
 fn save_drawing(app_handle: tauri::AppHandle, args: SaveDrawingArgs) -> Result<(), String> {
     // Get the app data directory
-    let app_data_dir = app_data_dir(&app_handle.config()).expect("Failed to get app data directory");
-    debug!("App data directory: {:?}", app_data_dir);
+    let app_data_dir = tauri::api::path::app_data_dir(&app_handle.config())
+        .ok_or("Failed to get app data directory")?;
     
-    // Create the directory if it doesn't exist
-    if (!app_data_dir.exists()) {
-        info!("Creating app data directory: {:?}", app_data_dir);
-        fs::create_dir_all(&app_data_dir).map_err(|e| {
-            error!("Failed to create app data directory: {}", e);
-            e.to_string()
-        })?;
+    if !app_data_dir.exists() {
+        fs::create_dir_all(&app_data_dir).map_err(|e| e.to_string())?;
     }
     
-    // Define the path for the drawing file
     let app_name = &app_handle.config().tauri.bundle.identifier;
     let cache_dir = app_data_dir.join("cache").join(app_name);
     
-    // Create cache directory if it doesn't exist
-    if (!cache_dir.exists()) {
-        info!("Creating cache directory: {:?}", cache_dir);
-        fs::create_dir_all(&cache_dir).map_err(|e| {
-            error!("Failed to create cache directory: {}", e);
-            e.to_string()
-        })?;
+    if !cache_dir.exists() {
+        fs::create_dir_all(&cache_dir).map_err(|e| e.to_string())?;
     }
     
-    // Define the path for the drawing file (in excalidraw format)
     let file_path = cache_dir.join("drawing-data.excalidraw");
-    info!("Saving drawing to: {:?}", file_path);
     
-    // Write the data to the file
-    fs::write(&file_path, &args.data).map_err(|e| {
-        error!("Failed to write drawing data: {}", e);
-        e.to_string()
-    })?;
+    // Convert args to a JSON string
+    let data = serde_json::to_string(&args).map_err(|e| e.to_string())?;
     
-    debug!("Drawing saved successfully");
+    fs::write(&file_path, data).map_err(|e| e.to_string())?;
+    
     Ok(())
 }
 

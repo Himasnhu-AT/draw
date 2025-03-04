@@ -12,8 +12,8 @@ importers:
         specifier: ^0.17.6
         version: 0.17.6(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       '@tauri-apps/api':
-        specifier: ^2.3.0
-        version: 2.3.0
+        specifier: ^1.6.0
+        version: 1.6.0
       next:
         specifier: 14.2.21
         version: 14.2.21(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -288,8 +288,9 @@ packages:
   '@tailwindcss/postcss@4.0.9':
     resolution: {integrity: sha512-BT/E+pdMqulavEAVM5NCpxmGEwHiLDPpkmg/c/X25ZBW+izTe+aZ+v1gf/HXTrihRoCxrUp5U4YyHsBTzspQKQ==}
 
-  '@tauri-apps/api@2.3.0':
-    resolution: {integrity: sha512-33Z+0lX2wgZbx1SPFfqvzI6su63hCBkbzv+5NexeYjIx7WA9htdOKoRR7Dh3dJyltqS5/J8vQFyybiRoaL0hlA==}
+  '@tauri-apps/api@1.6.0':
+    resolution: {integrity: sha512-rqI++FWClU5I2UBp4HXFvl+sBWkdigBkxnpJDQUWttNyG7IZP4FwQGhTNL5EOw0vI8i6eSAJ5frLqO7n7jbJdg==}
+    engines: {node: '>= 14.6.0', npm: '>= 6.6.0', yarn: '>= 1.19.1'}
 
   '@tauri-apps/cli-darwin-arm64@1.6.3':
     resolution: {integrity: sha512-fQN6IYSL8bG4NvkdKE4sAGF4dF/QqqQq4hOAU+t8ksOzHJr0hUlJYfncFeJYutr/MMkdF7hYKadSb0j5EE9r0A==}
@@ -1743,7 +1744,7 @@ snapshots:
       postcss: 8.5.3
       tailwindcss: 4.0.9
 
-  '@tauri-apps/api@2.3.0': {}
+  '@tauri-apps/api@1.6.0': {}
 
   '@tauri-apps/cli-darwin-arm64@1.6.3':
     optional: true
